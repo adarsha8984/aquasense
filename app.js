@@ -1,439 +1,103 @@
-javascript
-const API = "data.json";
+// GitHub Pages uses a static JSON file instead of PHP/MySQL.
+const DATA_URL = "data.json";
 const DEVICE_FILTER = "106";
-
 const $ = id => document.getElementById(id);
 
-// =========================
-// CLOCK
-// =========================
 function updateClock() {
   const now = new Date();
-
-  $("clock").textContent =
-    now.toLocaleTimeString("en-GB", {
-      hour12: false
-    });
-
-  $("date").textContent =
-    now.toLocaleDateString("en-GB", {
-      weekday: "short",
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    }).toUpperCase();
+  $("clock").textContent = now.toLocaleTimeString("en-GB", { hour12: false });
+  $("date").textContent = now.toLocaleDateString("en-GB", {
+    weekday: "short", day: "2-digit", month: "short", year: "numeric"
+  }).toUpperCase();
 }
-
 setInterval(updateClock, 1000);
 updateClock();
 
-
-// =========================
-// ERROR
-// =========================
-function showError(message) {
-  $("connection").innerHTML = "<i></i> Server unavailable";
-  $("connection").style.color = "#fca5a5";
-
-  $("alertTitle").textContent = "Unable to load sensor data";
-  $("alertText").textContent = message || "Could not load data.json";
-
-  $("alertBadge").textContent = "OFFLINE";
-}
-
-
-// =========================
-// LOAD DATA.JSON
-// =========================
-async function loadData() {
-  const response = await fetch(`${API}?t=${Date.now()}`, {
-    cache: "no-store"
-  });
-
-  if (!response.ok) {
-    throw new Error(`data.json HTTP error: ${response.status}`);
-  }
-
-  const data = await response.json();
-
-  return data;
-}
-
-
-// =========================
-// GET LATEST READING
-// =========================
-function getLatestReading(data) {
-
-  // Case 1:
-  // data.json contains:
-  // {
-  //   "device_id": "106",
-  //   ...
-  // }
-  if (!Array.isArray(data)) {
-    return data;
-  }
-
-  // Case 2:
-  // data.json contains an array
-  // [
-  //   {...},
-  //   {...}
-  // ]
-
-  if (data.length === 0) {
-    return null;
-  }
-
-  // Filter device
-  const filtered = data.filter(
-    d => String(d.device_id) === String(DEVICE_FILTER)
-  );
-
-  if (filtered.length === 0) {
-    return null;
-  }
-
-  // Latest first
-  filtered.sort((a, b) => {
-    return new Date(getTimestamp(b)) - new Date(getTimestamp(a));
-  });
-
-  return filtered[0];
-}
-
-
-// =========================
-// GET HISTORY
-// =========================
-function getHistory(data) {
-
-  if (!Array.isArray(data)) {
-    return [data];
-  }
-
-  return data
-    .filter(d =>
-      String(d.device_id) === String(DEVICE_FILTER)
-    )
-    .sort((a, b) => {
-      return new Date(getTimestamp(b)) -
-             new Date(getTimestamp(a));
-    })
-    .slice(0, 20);
-}
-
-
-// =========================
-// TIMESTAMP
-// =========================
-function getTimestamp(data) {
-
-  return (
-    data.created_at ||
-    data.timestamp ||
-    data.time ||
-    new Date().toISOString()
-  );
-}
-
-
-// =========================
-// UPDATE DASHBOARD
-// =========================
-async function refreshDashboard() {
-
-  try {
-
-    const data = await loadData();
-
-    const latest = getLatestReading(data);
-
-    // Connection OK
-    $("connection").innerHTML =
-      "<i></i> Data connected";
-
-    $("connection").style.color = "#6ee7b7";
-
-    // No data
-    if (!latest) {
-
-      $("alertTitle").textContent =
-        "Waiting for sensor data";
-
-      $("alertText").textContent =
-        `No data found for device ${DEVICE_FILTER}.`;
-
-      $("alertBadge").textContent =
-        "WAITING";
-
-      return;
-    }
-
-
-    // =========================
-    // VALUES
-    // =========================
-
-    const depth = Number(
-      latest.ultrasonic_distance ??
-      latest.depth_cm ??
-      latest.depth ??
-      0
-    );
-
-    const deviceId =
-      latest.device_id ?? DEVICE_FILTER;
-
-    const place =
-      latest.place ?? "Unknown";
-
-
-    // =========================
-    // DEPTH
-    // =========================
-
-    $("depthValue").textContent =
-      depth.toFixed(1);
-
-    $("depthM").textContent =
-      (depth / 100).toFixed(2) + " m";
-
-    $("depthFt").textContent =
-      (depth / 30.48).toFixed(2) + " ft";
-
-
-    // =========================
-    // WATER LEVEL
-    // =========================
-
-    const fillPercent =
-      Math.max(
-        0,
-        Math.min(
-          100,
-          (depth / 350) * 100
-        )
-      );
-
-    $("waterFill").style.height =
-      fillPercent + "%";
-
-
-    // =========================
-    // DEVICE
-    // =========================
-
-    $("deviceId").textContent =
-      deviceId;
-
-    $("deviceMetric").textContent =
-      deviceId;
-
-
-    // =========================
-    // PLACE
-    // =========================
-
-    $("placeName").textContent =
-      `${place} · WATER LEVEL`;
-
-    $("placeMetric").textContent =
-      place;
-
-
-    // =========================
-    // LAST UPDATED
-    // =========================
-
-    const timestamp =
-      getTimestamp(latest);
-
-    const dateObject =
-      new Date(timestamp);
-
-    if (!isNaN(dateObject.getTime())) {
-
-      $("lastUpdated").textContent =
-        dateObject.toLocaleString();
-
-    } else {
-
-      $("lastUpdated").textContent =
-        timestamp;
-
-    }
-
-
-    $("age").textContent =
-      "Latest saved reading";
-
-
-    // =========================
-    // ALERT
-    // =========================
-
-    $("alertTitle").textContent =
-      "Sensor data received";
-
-    $("alertText").textContent =
-      `Device ${deviceId} at ${place} reported ${depth.toFixed(2)} cm.`;
-
-    $("alertBadge").textContent =
-      "RECEIVING";
-
-
-    // =========================
-    // HISTORY
-    // =========================
-
-    refreshHistory(data);
-
-  }
-
-  catch (error) {
-
-    console.error("AquaSense error:", error);
-
-    showError(error.message);
-
-    $("history").innerHTML =
-      `<tr>
-        <td colspan="4" class="empty">
-          Could not load data.json.
-        </td>
-      </tr>`;
-
+function setStatus(online, message) {
+  $("connection").innerHTML = `<i></i> ${online ? "JSON connected" : "Data unavailable"}`;
+  $("connection").style.color = online ? "#6ee7b7" : "#fca5a5";
+  if (!online) {
+    $("alertTitle").textContent = "Unable to load sensor data";
+    $("alertText").textContent = message;
+    $("alertBadge").textContent = "OFFLINE";
   }
 }
 
-
-// =========================
-// HISTORY TABLE
-// =========================
-function refreshHistory(data) {
-
-  try {
-
-    const rows =
-      getHistory(data);
-
-    if (!rows.length) {
-
-      $("history").innerHTML =
-        `<tr>
-          <td colspan="4" class="empty">
-            No readings stored yet.
-          </td>
-        </tr>`;
-
-      return;
-    }
-
-
-    $("history").innerHTML =
-      rows.map(r => {
-
-        const timestamp =
-          getTimestamp(r);
-
-        const date =
-          new Date(timestamp);
-
-        const dateText =
-          !isNaN(date.getTime())
-            ? date.toLocaleString()
-            : timestamp;
-
-        const depth =
-          Number(
-            r.ultrasonic_distance ??
-            r.depth_cm ??
-            r.depth ??
-            0
-          );
-
-        return `
-          <tr>
-            <td>${escapeHtml(dateText)}</td>
-
-            <td>
-              ${escapeHtml(r.device_id ?? "")}
-            </td>
-
-            <td>
-              ${escapeHtml(r.place ?? "")}
-            </td>
-
-            <td>
-              ${depth.toFixed(2)}
-            </td>
-          </tr>
-        `;
-
-      }).join("");
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "History error:",
-      error
-    );
-
-    $("history").innerHTML =
-      `<tr>
-        <td colspan="4" class="empty">
-          Could not load history.
-        </td>
-      </tr>`;
-
-  }
+function formatDate(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString();
 }
 
-
-// =========================
-// HTML ESCAPE
-// =========================
 function escapeHtml(value) {
-
-  return String(value ?? "")
-    .replace(
-      /[&<>"']/g,
-      c => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;"
-      }[c])
-    );
-
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+  }[c]));
 }
 
+function renderLatest(d) {
+  if (!d) {
+    $("alertTitle").textContent = "Waiting for first ESP32 reading";
+    $("alertText").textContent = "No sensor reading is available in data.json yet.";
+    $("alertBadge").textContent = "WAITING";
+    return;
+  }
 
-// =========================
-// REFRESH BUTTON
-// =========================
-$("refreshBtn")
-  .addEventListener(
-    "click",
-    refreshDashboard
-  );
+  const depth = Number(d.ultrasonic_distance);
+  if (!Number.isFinite(depth)) throw new Error("ultrasonic_distance must be a number in data.json.");
 
+  $("depthValue").textContent = depth.toFixed(1);
+  $("depthM").textContent = (depth / 100).toFixed(2) + " m";
+  $("depthFt").textContent = (depth / 30.48).toFixed(2) + " ft";
+  $("waterFill").style.height = Math.max(0, Math.min(100, depth / 350 * 100)) + "%";
+  $("deviceId").textContent = d.device_id ?? DEVICE_FILTER;
+  $("deviceMetric").textContent = d.device_id ?? DEVICE_FILTER;
+  $("placeName").textContent = (d.place || "Unknown") + " · WATER LEVEL";
+  $("placeMetric").textContent = d.place || "—";
+  $("lastUpdated").textContent = formatDate(d.created_at);
+  $("age").textContent = "Latest JSON reading";
+  $("alertTitle").textContent = "Sensor data received";
+  $("alertText").textContent = `Device ${d.device_id ?? DEVICE_FILTER} at ${d.place || "unknown location"} reported ${depth.toFixed(2)} cm.`;
+  $("alertBadge").textContent = "RECEIVING";
+}
 
-// =========================
-// INITIAL LOAD
-// =========================
+function renderHistory(rows) {
+  const filtered = (Array.isArray(rows) ? rows : [])
+    .filter(r => !r.device_id || String(r.device_id) === DEVICE_FILTER)
+    .slice(0, 20);
+
+  $("history").innerHTML = filtered.length
+    ? filtered.map(r => `<tr>
+        <td>${escapeHtml(formatDate(r.created_at))}</td>
+        <td>${escapeHtml(r.device_id ?? DEVICE_FILTER)}</td>
+        <td>${escapeHtml(r.place ?? "—")}</td>
+        <td>${Number(r.ultrasonic_distance).toFixed(2)}</td>
+      </tr>`).join("")
+    : '<tr><td colspan="4" class="empty">No readings stored yet.</td></tr>';
+}
+
+async function refreshDashboard() {
+  try {
+    const response = await fetch(`${DATA_URL}?t=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Could not load ${DATA_URL} (HTTP ${response.status}).`);
+
+    const result = await response.json();
+    // Supported format: { "latest": {...}, "history": [...] }
+    // Also accepts a single reading object at the JSON root.
+    const latest = result.latest ?? result.data ?? (
+      result.ultrasonic_distance !== undefined ? result : null
+    );
+    const history = result.history ?? (latest ? [latest] : []);
+
+    setStatus(true);
+    renderLatest(latest);
+    renderHistory(history);
+  } catch (error) {
+    setStatus(false, error.message);
+    $("history").innerHTML = '<tr><td colspan="4" class="empty">Could not load JSON history.</td></tr>';
+  }
+}
+
+$("refreshBtn").addEventListener("click", refreshDashboard);
 refreshDashboard();
-
-
-// =========================
-// AUTO REFRESH
-// =========================
-setInterval(
-  refreshDashboard,
-  10000
-);
+setInterval(refreshDashboard, 10000);
