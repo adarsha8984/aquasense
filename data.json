@@ -2,27 +2,8 @@
   "latest": {
     "device_id": "106",
     "place": "BBSR",
-    "ultrasonic_distance": 125.5,
-    "created_at": "2026-11-20T12:50:00Z"
+    "ultrasonic_distance": 0,
+    "created_at": "2026-11-20T00:00:00Z"
   },
-  "history": [
-    {
-      "device_id": "106",
-      "place": "BBSR",
-      "ultrasonic_distance": 125.5,
-      "created_at": "2026-11-20T12:50:00Z"
-    },
-    {
-      "device_id": "106",
-      "place": "BBSR",
-      "ultrasonic_distance": 126.2,
-      "created_at": "2026-11-20T12:40:00Z"
-    },
-    {
-      "device_id": "106",
-      "place": "BBSR",
-      "ultrasonic_distance": 127.0,
-      "created_at": "2026-11-20T12:30:00Z"
-    }
-  ]
+  "history": []
 }
