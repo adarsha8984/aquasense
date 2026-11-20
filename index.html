@@ -48,11 +48,11 @@
       </article>
 
       <article class="panel history-panel">
-        <div class="panel-heading"><div><span class="eyebrow">DATABASE RECORDS</span><h2>Recent water-level readings</h2><p>Latest 20 readings received from the ESP32</p></div><button id="refreshBtn">Refresh</button></div>
+        <div class="panel-heading"><div><span class="eyebrow">JSON RECORDS</span><h2>Recent water-level readings</h2><p>Latest 20 readings listed in data.json</p></div><button id="refreshBtn">Refresh</button></div>
         <div class="table-wrap"><table><thead><tr><th>Time</th><th>Device</th><th>Place</th><th>Depth (cm)</th></tr></thead><tbody id="history"><tr><td colspan="4" class="empty">Loading readings…</td></tr></tbody></table></div>
       </article>
     </section>
-    <footer> A method of water-level monitoring · AquaSense Pro <span id="serverNote">Data is retrieved from your hosting server.</span></footer>
+    <footer> A method of water-level monitoring · AquaSense Pro <span id="serverNote">Data is loaded from data.json.</span></footer>
   </main>
   <script src="app.js"></script>
 </body>
