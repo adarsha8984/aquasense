@@ -1,1 +1,7 @@
-{"device_id": "0","place": "BBSR","depth_cm": "0","timestamp": "2026-11-20T11:30:00+05:30","status": "online"}
+{
+  "device_id": "106",
+  "place": "BBSR",
+  "ultrasonic_distance": 155.9,
+  "timestamp": "2026-11-20T11:59:35+05:30",
+  "status": "online"
+}
