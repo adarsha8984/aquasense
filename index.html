@@ -1,59 +1,249 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <title>AquaSense Pro — Live Water Level</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+
+  <!-- HEADER -->
   <header class="topbar">
+
     <div class="brand">
       <div class="logo">≈</div>
-      <div><h1>AQUASENSE <span>HYDRO</span></h1><p>Ultrasonic water-level telemetry</p></div>
+
+      <div>
+        <h1>AQUASENSE <span>HYDRO</span></h1>
+        <p>Ultrasonic water-level telemetry</p>
+      </div>
     </div>
+
     <div class="header-right">
-      <div id="connection" class="status"><i></i> Connecting</div>
-      <div class="clock"><strong id="clock">--:--:--</strong><small id="date">---</small></div>
+
+      <div id="connection" class="status">
+        <i></i> Connecting
+      </div>
+
+      <div class="clock">
+        <strong id="clock">--:--:--</strong>
+        <small id="date">---</small>
+      </div>
+
     </div>
+
   </header>
 
   <main>
+
+    <!-- SENSOR ALERT -->
     <section class="alert" id="alert">
-      <div><strong id="alertTitle">Waiting for sensor data</strong><p id="alertText">The dashboard will update when the ESP32 sends its first reading.</p></div>
+
+      <div>
+        <strong id="alertTitle">Waiting for sensor data</strong>
+
+        <p id="alertText">
+          The dashboard will update when the ESP32 sends its first reading.
+        </p>
+      </div>
+
       <span id="alertBadge">WAITING</span>
+
     </section>
 
+    <!-- MAIN DASHBOARD -->
     <section class="dashboard">
+
       <article class="panel main-panel">
+
+        <!-- HEADING -->
         <div class="panel-heading">
-          <div><span class="eyebrow">LIVE SENSOR</span><h2 id="placeName">BBSR · MAIN WATER BODY</h2><p>Device ID: <b id="deviceId">106</b></p></div>
-          <span class="live-tag"><i></i> LIVE DATA</span>
+
+          <div>
+            <span class="eyebrow">LIVE SENSOR</span>
+
+            <h2 id="placeName">
+              BBSR · MAIN WATER BODY
+            </h2>
+
+            <p>
+              Device ID: <b id="deviceId">106</b>
+            </p>
+          </div>
+
+          <span class="live-tag">
+            <i></i> LIVE DATA
+          </span>
+
         </div>
 
+        <!-- READINGS -->
         <div class="readings">
+
+          <!-- BIG WATER TANK -->
           <div class="tank">
-            <div class="tank-inner"><div id="waterFill" class="water-fill"></div><div class="tank-overlay"><strong id="depthValue">--</strong><span>cm depth</span></div></div>
-            <div class="tank-caption">Water depth indicator</div>
+
+            <div class="tank-inner">
+
+              <div id="waterFill" class="water-fill"></div>
+
+              <div class="tank-overlay">
+
+                <strong id="depthValue">--</strong>
+
+                <span>CM DEPTH</span>
+
+              </div>
+
+            </div>
+
+            <div class="tank-caption">
+              Water depth indicator
+            </div>
+
           </div>
+
+          <!-- TWO METRIC CARDS -->
           <div class="metrics">
-            <div class="metric"><span>WATER DEPTH</span><strong id="depthM">-- m</strong><small id="depthFt">-- ft</small></div>
-            <div class="metric"><span>LAST UPDATED</span><strong class="small-value" id="lastUpdated">No data</strong><small id="age">Waiting for first reading</small></div>
-            <div class="metric"><span>PLACE</span><strong class="small-value" id="placeMetric">BBSR</strong><small>ESP32 location tag</small></div>
-            <div class="metric"><span>DEVICE</span><strong class="small-value" id="deviceMetric">106</strong><small>Registered device ID</small></div>
+
+            <div class="metric">
+
+              <span>WATER DEPTH</span>
+
+              <strong id="depthM">-- m</strong>
+
+              <small id="depthFt">-- ft</small>
+
+            </div>
+
+            <div class="metric">
+
+              <span>PLACE</span>
+
+              <strong class="small-value" id="placeMetric">
+                BBSR
+              </strong>
+
+              <small>ESP32 location tag</small>
+
+            </div>
+
           </div>
+
+          <!-- LIVE GRAPH -->
+          <div class="metric graph-card">
+
+            <div class="graph-heading">
+
+              <div>
+                <span>WATER LEVEL HISTORY</span>
+                <h3>Live Depth Graph</h3>
+              </div>
+
+              <span class="graph-live">
+                <i></i> LIVE
+              </span>
+
+            </div>
+
+            <div class="chart-container">
+              <canvas id="waterChart"></canvas>
+            </div>
+
+            <div class="graph-footer">
+
+              <span>Distance (cm)</span>
+
+              <span id="graphStatus">
+                Waiting for readings...
+              </span>
+
+            </div>
+
+          </div>
+
         </div>
+
       </article>
 
+      <!-- HISTORY TABLE -->
       <article class="panel history-panel">
-        <div class="panel-heading"><div><span class="eyebrow">JSON RECORDS</span><h2>Recent water-level readings</h2><p>Latest 20 readings listed in data.json</p></div><button id="refreshBtn">Refresh</button></div>
-        <div class="table-wrap"><table><thead><tr><th>Time</th><th>Device</th><th>Place</th><th>Depth (cm)</th></tr></thead><tbody id="history"><tr><td colspan="4" class="empty">Loading readings…</td></tr></tbody></table></div>
+
+        <div class="panel-heading">
+
+          <div>
+            <span class="eyebrow">JSON RECORDS</span>
+
+            <h2>Recent water-level readings</h2>
+
+            <p>Latest 20 readings listed in data.json</p>
+          </div>
+
+          <button id="refreshBtn">
+            Refresh
+          </button>
+
+        </div>
+
+        <div class="table-wrap">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Device</th>
+                <th>Place</th>
+                <th>Depth (cm)</th>
+              </tr>
+            </thead>
+
+            <tbody id="history">
+
+              <tr>
+                <td colspan="4" class="empty">
+                  Loading readings...
+                </td>
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
       </article>
+
     </section>
-    <footer> A method of water-level monitoring · AquaSense Pro <span id="serverNote">Data is loaded from data.json.</span></footer>
+
+    <!-- FOOTER -->
+    <footer>
+
+      <span>A method of water-level monitoring · AquaSense Pro</span>
+
+      <span id="serverNote">
+        Data is loaded from data.json.
+      </span>
+
+    </footer>
+
   </main>
+
+  <!-- CHART LIBRARY -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- DASHBOARD JAVASCRIPT -->
   <script src="app.js"></script>
+
 </body>
 </html>
