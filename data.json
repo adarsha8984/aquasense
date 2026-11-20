@@ -1,9 +1,1 @@
-{
-  "latest": {
-    "device_id": "106",
-    "place": "BBSR",
-    "ultrasonic_distance": 0,
-    "created_at": "2026-11-20T00:00:00Z"
-  },
-  "history": []
-}
+{"latest":{"device_id":"106","place":"BBSR","ultrasonic_distance":22.5,"created_at":"2026-11-20T20:21:33+0530"},"history":[{"device_id":"106","place":"BBSR","ultrasonic_distance":22.5,"created_at":"2026-11-20T20:21:33+0530"}]}
